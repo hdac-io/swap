@@ -1,5 +1,6 @@
 CARGO  = $(or $(shell which cargo),  $(HOME)/.cargo/bin/cargo)
 RUSTUP = $(or $(shell which rustup), $(HOME)/.cargo/bin/rustup)
+
 RUST_TOOLCHAIN := $(shell cat rust-toolchain)
 
 build/%:

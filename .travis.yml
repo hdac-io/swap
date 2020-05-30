@@ -1,0 +1,31 @@
+language: rust
+rust: nightly
+cache: cargo
+before_cache:
+  - rm -rf "$TRAVIS_HOME/.cargo/registry/src"
+
+jobs:
+  include:
+    - stage: unit test
+      os: linux
+      dist: xenial
+      script:
+        - make test
+    - stage: unit test
+      os: osx
+      osx_image: xcode11.3
+      script:
+        - make test
+    - stage: lint
+      os: linux
+      dist: bionic
+      before_script:
+        - rustup component add rustfmt clippy --toolchain $(cat rust-toolchain)
+      script:
+        - make build/swap-install && make check-format && make lint
+env:
+  global:
+    - PATH="$PATH:$HOME/protoc/bin"
+    - RUST_BACKTRACE=1
+install:
+  - make setup
