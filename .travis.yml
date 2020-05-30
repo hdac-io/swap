@@ -10,12 +10,12 @@ jobs:
       os: linux
       dist: xenial
       script:
-        - make test
+        - make build/swap-install && make test
     - stage: unit test
       os: osx
       osx_image: xcode11.3
       script:
-        - make test
+        - make build/swap-install && make test
     - stage: lint
       os: linux
       dist: bionic
@@ -28,4 +28,5 @@ env:
     - PATH="$PATH:$HOME/protoc/bin"
     - RUST_BACKTRACE=1
 install:
+  - ./scripts/install_protoc.sh
   - make setup
