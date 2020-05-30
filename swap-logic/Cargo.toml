@@ -16,8 +16,8 @@ lib = []
 enable-bonding = []
 
 [dependencies]
-contract = { path = "../../../contract", package = "casperlabs-contract", features = ["std"] }
-types = { path = "../../../types", package = "casperlabs-types", features = ["std"] }
+contract = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-contract", features = ["std"] }
+types = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-types", features = ["std"] }
 
 libsecp256k1 = { version = "0.3.5", default-features = false }
 sha2 = { version = "0.8.1", default-features = false }
