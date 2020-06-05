@@ -20,8 +20,6 @@ pub struct UnitSnapshotData {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct UnitKYCData {
     pub kyc_level: U512,
-    pub is_sent_token_for_swap: U512,
-    pub kyc_step: U512,
     pub swapped_amount: U512,
 }
 
@@ -66,16 +64,7 @@ impl UnitKYCData {
         let kyc_level =
             U512::from_str_radix(unit_tree.get(keys::KEY_KYC_LEVEL).unwrap_or_revert(), 10)
                 .unwrap_or_default();
-        let is_sent_token_for_swap = U512::from_str_radix(
-            unit_tree
-                .get(keys::KEY_IS_SENT_TOKEN_FOR_SWAP)
-                .unwrap_or_revert(),
-            10,
-        )
-        .unwrap_or_default();
-        let kyc_step =
-            U512::from_str_radix(unit_tree.get(keys::KEY_KYC_STEP).unwrap_or_revert(), 10)
-                .unwrap_or_default();
+
         let swapped_amount = U512::from_str_radix(
             unit_tree.get(keys::KEY_SWAPPED_AMOUNT).unwrap_or_revert(),
             10,
@@ -84,8 +73,6 @@ impl UnitKYCData {
 
         UnitKYCData {
             kyc_level,
-            is_sent_token_for_swap,
-            kyc_step,
             swapped_amount,
         }
     }
@@ -96,16 +83,6 @@ impl UnitKYCData {
             .write_fmt(format_args!("{}", self.kyc_level))
             .unwrap_or_default();
 
-        let mut is_sent_token_for_swap = String::new();
-        is_sent_token_for_swap
-            .write_fmt(format_args!("{}", self.is_sent_token_for_swap))
-            .unwrap_or_default();
-
-        let mut kyc_step = String::new();
-        kyc_step
-            .write_fmt(format_args!("{}", self.kyc_step))
-            .unwrap_or_default();
-
         let mut swapped_amount = String::new();
         swapped_amount
             .write_fmt(format_args!("{}", self.swapped_amount))
@@ -113,11 +90,6 @@ impl UnitKYCData {
 
         let mut res: BTreeMap<String, String> = BTreeMap::new();
         res.insert(keys::KEY_KYC_LEVEL.to_string(), kyc_level);
-        res.insert(
-            keys::KEY_IS_SENT_TOKEN_FOR_SWAP.to_string(),
-            is_sent_token_for_swap,
-        );
-        res.insert(keys::KEY_KYC_STEP.to_string(), kyc_step);
         res.insert(keys::KEY_SWAPPED_AMOUNT.to_string(), swapped_amount);
 
         res
@@ -169,6 +141,11 @@ pub fn save_kyc_data(new_address: PublicKey, unit_data: UnitKYCData) {
 
     let new_data_uref = contract_storage::new_uref(unit_data.organize());
     runtime::put_key(&str_new_address, new_data_uref.into());
+}
+
+pub fn check_kyc_data_existence(new_address: PublicKey) -> bool {
+    let str_new_address = to_hex_string(new_address);
+    runtime::has_key(&str_new_address)
 }
 
 pub fn to_hex_string(address: PublicKey) -> String {

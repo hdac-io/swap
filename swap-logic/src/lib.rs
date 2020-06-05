@@ -46,8 +46,11 @@ pub extern "C" fn delegate() {
             let new_mainnet_address: PublicKey = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
+            let kyc_level: U512 = runtime::get_arg(2)
+                .unwrap_or_revert_with(ApiError::MissingArgument)
+                .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-            swap_control::insert_kyc_data(new_mainnet_address);
+            swap_control::insert_kyc_data(new_mainnet_address, kyc_level);
         }
         methods::METHOD_UPDATE_KYC_LEVEL => {
             let new_mainnet_address: PublicKey = runtime::get_arg(1)
@@ -59,30 +62,6 @@ pub extern "C" fn delegate() {
 
             swap_control::update_kyc_level(new_mainnet_address, kyc_level);
         }
-        methods::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT => {
-            let new_mainnet_address: PublicKey = runtime::get_arg(1)
-                .unwrap_or_revert_with(ApiError::MissingArgument)
-                .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let is_sent_token_for_swap: U512 = runtime::get_arg(2)
-                .unwrap_or_revert_with(ApiError::MissingArgument)
-                .unwrap_or_revert_with(ApiError::InvalidArgument);
-
-            swap_control::update_status_is_sent_token_for_swap(
-                new_mainnet_address,
-                is_sent_token_for_swap,
-            );
-        }
-        methods::METHOD_UPDATE_KYC_STEP => {
-            let new_mainnet_address: PublicKey = runtime::get_arg(1)
-                .unwrap_or_revert_with(ApiError::MissingArgument)
-                .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let kyc_step: U512 = runtime::get_arg(2)
-                .unwrap_or_revert_with(ApiError::MissingArgument)
-                .unwrap_or_revert_with(ApiError::InvalidArgument);
-
-            swap_control::update_kyc_step(new_mainnet_address, kyc_step);
-        }
-
         methods::METHOD_GET_TOKEN => {
             let ver1_pubkey_hex_arr: Vec<String> = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)

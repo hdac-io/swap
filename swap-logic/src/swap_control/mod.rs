@@ -6,11 +6,11 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use contract::contract_api::runtime;
+use contract::contract_api::{account, runtime, system};
 use error::Error as SwapError;
 use num_traits::cast::AsPrimitive;
 use swap_storage::{UnitKYCData, UnitSnapshotData};
-use types::{account::PublicKey, ApiError, Key, U512};
+use types::{account::PublicKey, Key, TransferResult, U512};
 
 use crate::constants;
 use ver1::{derive_ver1_address, signature_verification};
@@ -44,18 +44,30 @@ pub fn insert_snapshot(ver1_address: String, prev_balance: U512) {
     swap_storage::save_snapshot_data(ver1_address, new_data);
 }
 
-pub fn insert_kyc_data(new_mainnet_address: PublicKey) {
+pub fn insert_kyc_data(new_mainnet_address: PublicKey, kyc_level: U512) {
     if runtime::get_caller() != swap_storage::load_admin() {
-        runtime::revert(ApiError::NoAccessRights);
+        runtime::revert(SwapError::NotAdmin);
+    }
+
+    if swap_storage::check_kyc_data_existence(new_mainnet_address) {
+        runtime::revert(SwapError::AlreadyRegisteredAndReceivedSmallToken);
     }
 
     let new_data = UnitKYCData {
-        is_sent_token_for_swap: U512::from(0),
-        kyc_step: U512::from(0),
-        kyc_level: U512::from(0),
+        kyc_level,
         swapped_amount: U512::from(0),
     };
     swap_storage::save_kyc_data(new_mainnet_address, new_data);
+
+    let transfer_res: TransferResult = system::transfer_from_purse_to_account(
+        account::get_main_purse(),
+        new_mainnet_address,
+        U512::from(constants::consts::BIGSUN_TO_HDAC / 10), // 0.1 Hdac
+    );
+
+    if let Err(err) = transfer_res {
+        runtime::revert(err);
+    }
 }
 
 pub fn update_kyc_level(new_mainnet_address: PublicKey, kyc_level: U512) {
@@ -65,29 +77,6 @@ pub fn update_kyc_level(new_mainnet_address: PublicKey, kyc_level: U512) {
 
     let mut curr_data = swap_storage::load_kyc_data(new_mainnet_address);
     curr_data.kyc_level = kyc_level;
-    swap_storage::save_kyc_data(new_mainnet_address, curr_data);
-}
-
-pub fn update_status_is_sent_token_for_swap(
-    new_mainnet_address: PublicKey,
-    is_sent_token_for_swap: U512,
-) {
-    if runtime::get_caller() != swap_storage::load_admin() {
-        runtime::revert(SwapError::NotAdmin);
-    }
-
-    let mut curr_data = swap_storage::load_kyc_data(new_mainnet_address);
-    curr_data.is_sent_token_for_swap = is_sent_token_for_swap;
-    swap_storage::save_kyc_data(new_mainnet_address, curr_data);
-}
-
-pub fn update_kyc_step(new_mainnet_address: PublicKey, kyc_step: U512) {
-    if runtime::get_caller() != swap_storage::load_admin() {
-        runtime::revert(SwapError::NotAdmin);
-    }
-
-    let mut curr_data = swap_storage::load_kyc_data(new_mainnet_address);
-    curr_data.kyc_step = kyc_step;
     swap_storage::save_kyc_data(new_mainnet_address, curr_data);
 }
 
@@ -107,11 +96,6 @@ pub fn validate_sign_and_update_swapped_amount(
     let kyc_border_allowance_cap = swap_storage::load_kyc_border_allowance_cap();
 
     let mut curr_user_kyc_data = swap_storage::load_kyc_data(curr_account);
-
-    // Check KYC status
-    if curr_user_kyc_data.kyc_step < U512::from(1) {
-        runtime::revert(SwapError::NotRegisteredKYC);
-    }
 
     // Iterate addresses and summize for total value
     let mut prev_amount_for_whole_address = U512::from(0);

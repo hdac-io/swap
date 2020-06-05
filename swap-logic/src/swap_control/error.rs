@@ -17,6 +17,9 @@ pub enum Error {
     /// Caller has not registered KYC
     NotRegisteredKYC,
 
+    /// Already registered and received small amount of token
+    AlreadyRegisteredAndReceivedSmallToken,
+
     /// Invalid KYC level value
     InvalidKYCLevelValue,
 

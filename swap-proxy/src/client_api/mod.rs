@@ -17,9 +17,6 @@ pub mod method_names {
         pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = swap::METHOD_INSERT_SNAPSHOT_RECORD;
         pub const METHOD_INSERT_KYC_DATA: &str = swap::METHOD_INSERT_KYC_DATA;
         pub const METHOD_UPDATE_KYC_LEVEL: &str = swap::METHOD_UPDATE_KYC_LEVEL;
-        pub const METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT: &str =
-            swap::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT;
-        pub const METHOD_UPDATE_KYC_STEP: &str = swap::METHOD_UPDATE_KYC_STEP;
         pub const METHOD_GET_TOKEN: &str = swap::METHOD_GET_TOKEN;
     }
     pub mod swap {
@@ -28,9 +25,6 @@ pub mod method_names {
         pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = "insert_snapshot_record";
         pub const METHOD_INSERT_KYC_DATA: &str = "insert_kyc_data";
         pub const METHOD_UPDATE_KYC_LEVEL: &str = "update_kyc_level";
-        pub const METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT: &str =
-            "update_status_swapable_token_sent";
-        pub const METHOD_UPDATE_KYC_STEP: &str = "update_kyc_step";
         pub const METHOD_GET_TOKEN: &str = "get_token";
     }
 }
@@ -39,10 +33,8 @@ pub enum Api {
     SetSwapHash(Key),
     InsertKYCAllowanceCap(U512),
     InsertSnapshotRecord(String, U512),
-    InsertKYCData(PublicKey),
+    InsertKYCData(PublicKey, U512),
     UpdateKYCLevel(PublicKey, U512),
-    UpdateStatusSwapableTokenSent(PublicKey, U512),
-    UpdateKYCStep(PublicKey, U512),
     GetToken(Key, Vec<String>, Vec<String>, Vec<String>),
 }
 
@@ -86,8 +78,11 @@ impl Api {
                 let new_mainnet_address: PublicKey = runtime::get_arg(1)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
+                let kyc_level: U512 = runtime::get_arg(2)
+                    .unwrap_or_revert_with(ApiError::MissingArgument)
+                    .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-                Api::InsertKYCData(new_mainnet_address)
+                Api::InsertKYCData(new_mainnet_address, kyc_level)
             }
             method_names::proxy::METHOD_UPDATE_KYC_LEVEL => {
                 let new_mainnet_address: PublicKey = runtime::get_arg(1)
@@ -97,24 +92,6 @@ impl Api {
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
                 Api::UpdateKYCLevel(new_mainnet_address, kyc_level)
-            }
-            method_names::proxy::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT => {
-                let new_mainnet_address: PublicKey = runtime::get_arg(1)
-                    .unwrap_or_revert_with(ApiError::MissingArgument)
-                    .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let is_swapable_token_sent: U512 = runtime::get_arg(2)
-                    .unwrap_or_revert_with(ApiError::MissingArgument)
-                    .unwrap_or_revert_with(ApiError::InvalidArgument);
-                Api::UpdateStatusSwapableTokenSent(new_mainnet_address, is_swapable_token_sent)
-            }
-            method_names::proxy::METHOD_UPDATE_KYC_STEP => {
-                let new_mainnet_address: PublicKey = runtime::get_arg(1)
-                    .unwrap_or_revert_with(ApiError::MissingArgument)
-                    .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let kyc_step: U512 = runtime::get_arg(2)
-                    .unwrap_or_revert_with(ApiError::MissingArgument)
-                    .unwrap_or_revert_with(ApiError::InvalidArgument);
-                Api::UpdateKYCStep(new_mainnet_address, kyc_step)
             }
             method_names::proxy::METHOD_GET_TOKEN => {
                 let contract_hash: Key = runtime::get_arg(1)
@@ -166,13 +143,14 @@ impl Api {
                     ),
                 )
             }
-            Self::InsertKYCData(new_mainnet_address) => {
+            Self::InsertKYCData(new_mainnet_address, kyc_level) => {
                 let swap_ref = get_contract_ref();
                 runtime::call_contract(
                     swap_ref,
                     (
                         method_names::proxy::METHOD_INSERT_KYC_DATA,
                         *new_mainnet_address,
+                        *kyc_level,
                     ),
                 )
             }
@@ -184,28 +162,6 @@ impl Api {
                         method_names::proxy::METHOD_UPDATE_KYC_LEVEL,
                         *new_mainnet_address,
                         *kyc_level,
-                    ),
-                )
-            }
-            Self::UpdateStatusSwapableTokenSent(new_mainnet_address, is_swapable_token_sent) => {
-                let swap_ref = get_contract_ref();
-                runtime::call_contract(
-                    swap_ref,
-                    (
-                        method_names::proxy::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT,
-                        *new_mainnet_address,
-                        *is_swapable_token_sent,
-                    ),
-                )
-            }
-            Self::UpdateKYCStep(new_mainnet_address, kyc_step) => {
-                let swap_ref = get_contract_ref();
-                runtime::call_contract(
-                    swap_ref,
-                    (
-                        method_names::proxy::METHOD_UPDATE_KYC_STEP,
-                        *new_mainnet_address,
-                        *kyc_step,
                     ),
                 )
             }
