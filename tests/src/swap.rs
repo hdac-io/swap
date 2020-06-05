@@ -224,7 +224,7 @@ fn should_run_insert_update_info_and_swap_step() {
     let insert_kyc = ExecuteRequestBuilder::contract_call_by_hash(
         ADMIN_PUBKEY,
         swap_contract_hash,
-        ("insert_kyc_data", ACCOUNT_1_PUBKEY),
+        ("insert_kyc_data", ACCOUNT_1_PUBKEY, U512::from(1)),
     )
     .build();
 
@@ -246,110 +246,10 @@ fn should_run_insert_update_info_and_swap_step() {
     .expect("should convert successfully");
 
     assert_eq!(value.is_empty(), false);
-
-    // Update KYC level
-    println!("3. Update KYC level");
-    let update_kyc_level_request = ExecuteRequestBuilder::contract_call_by_hash(
-        ADMIN_PUBKEY,
-        swap_contract_hash,
-        ("update_kyc_level", ACCOUNT_1_PUBKEY, U512::from(1u64)),
-    )
-    .build();
-
-    let mut builder = InMemoryWasmTestBuilder::from_result(result);
-    let result = builder
-        .exec(update_kyc_level_request)
-        .expect_success()
-        .commit()
-        .finish();
-
-    let contract_ref = get_swap_stored_hash(&builder);
-    let value: BTreeMap<String, String> = CLValue::try_from(
-        builder
-            .query(
-                Some(builder.get_post_state_hash()),
-                contract_ref,
-                &[&to_hex_string(ACCOUNT_1_PUBKEY)],
-            )
-            .expect("cannot derive stored value"),
-    )
-    .expect("should have CLValue")
-    .into_t()
-    .expect("should convert successfully");
-
     assert_eq!(value.get("kyc_level").unwrap(), "1");
 
-    // Update swapable token sent status
-    println!("4. Update swapable token sent status");
-    let update_swapable_token_sent_request = ExecuteRequestBuilder::contract_call_by_hash(
-        ADMIN_PUBKEY,
-        swap_contract_hash,
-        (
-            "update_status_swapable_token_sent",
-            ACCOUNT_1_PUBKEY,
-            U512::from(1u64),
-        ),
-    )
-    .build();
-
-    let mut builder = InMemoryWasmTestBuilder::from_result(result);
-    let result = builder
-        .exec(update_swapable_token_sent_request)
-        .expect_success()
-        .commit()
-        .finish();
-
     let contract_ref = get_swap_stored_hash(&builder);
-    let value: BTreeMap<String, String> = CLValue::try_from(
-        builder
-            .query(
-                Some(builder.get_post_state_hash()),
-                contract_ref,
-                &[&to_hex_string(ACCOUNT_1_PUBKEY)],
-            )
-            .expect("cannot derive stored value"),
-    )
-    .expect("should have CLValue")
-    .into_t()
-    .expect("should convert successfully");
-
-    assert_eq!(value.get("is_sent_token_for_swap").unwrap(), "1");
-
-    // Update KYC step
-    println!("5. Update KYC step");
-    let update_kyc_step_request = ExecuteRequestBuilder::contract_call_by_hash(
-        ADMIN_PUBKEY,
-        swap_contract_hash,
-        ("update_kyc_step", ACCOUNT_1_PUBKEY, U512::from(1u64)),
-    )
-    .build();
-
-    let mut builder = InMemoryWasmTestBuilder::from_result(result);
-    let result = builder
-        .exec(update_kyc_step_request)
-        .expect_success()
-        .commit()
-        .finish();
-
-    let contract_ref = get_swap_stored_hash(&builder);
-    let value: BTreeMap<String, String> = CLValue::try_from(
-        builder
-            .query(
-                Some(builder.get_post_state_hash()),
-                contract_ref,
-                &[&to_hex_string(ACCOUNT_1_PUBKEY)],
-            )
-            .expect("cannot derive stored value"),
-    )
-    .expect("should have CLValue")
-    .into_t()
-    .expect("should convert successfully");
-
-    assert_eq!(value.get("kyc_step").unwrap(), "1");
-
-    // Update KYC step
-    let contract_ref = get_swap_stored_hash(&builder);
-    println!("6. Get token without upper level KYC. It should fail");
+    println!("3. Get token without upper level KYC. It should fail");
     let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
         ACCOUNT_1_PUBKEY,
         swap_contract_hash,
@@ -393,7 +293,7 @@ fn should_run_insert_update_info_and_swap_step() {
     assert_eq!(value.get("swapped_amount").unwrap(), "0",);
 
     // Update KYC level
-    println!("7-1. Upgrade KYC level");
+    println!("4-1. Upgrade KYC level");
     let update_kyc_level_request = ExecuteRequestBuilder::contract_call_by_hash(
         ADMIN_PUBKEY,
         swap_contract_hash,
@@ -410,7 +310,7 @@ fn should_run_insert_update_info_and_swap_step() {
 
     // Update KYC step
     let contract_ref = get_swap_stored_hash(&builder);
-    println!("7-2. Get token without upper level KYC");
+    println!("4-2. Get token with upper level KYC. Should success now");
     let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
         ACCOUNT_1_PUBKEY,
         swap_contract_hash,
@@ -451,7 +351,7 @@ fn should_run_insert_update_info_and_swap_step() {
     );
 
     let contract_ref = get_swap_stored_hash(&builder);
-    println!("7-3. Try to swap with same wallet. Should fail");
+    println!("4-3. Try to swap with same wallet. Should fail");
     let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
         ACCOUNT_1_PUBKEY,
         swap_contract_hash,
@@ -476,7 +376,7 @@ fn should_run_insert_update_info_and_swap_step() {
 
     let error_message = utils::get_error_message(response);
 
-    assert!(error_message.contains(&format!("Revert({})", u32::from(ApiError::User(8)),)));
+    assert!(error_message.contains(&format!("Revert({})", u32::from(ApiError::User(9)),)));
 
     let contract_ref = get_swap_stored_hash(&builder);
     let value: BTreeMap<String, String> = CLValue::try_from(

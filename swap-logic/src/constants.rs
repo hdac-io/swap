@@ -21,7 +21,3 @@ pub(crate) mod users {
     pub const KEY_ADMIN: &str = "admin";
     pub const KEY_SWAP_HASH: &str = "swap_hash";
 }
-
-pub(crate) mod consts {
-    pub const BIGSUN_TO_HDAC: u64 = 1_000_000_000_000_000_000_u64;
-}

@@ -6,11 +6,11 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use contract::contract_api::{account, runtime, system};
+use contract::contract_api::runtime;
 use error::Error as SwapError;
 use num_traits::cast::AsPrimitive;
 use swap_storage::{UnitKYCData, UnitSnapshotData};
-use types::{account::PublicKey, Key, TransferResult, U512};
+use types::{account::PublicKey, Key, U512};
 
 use crate::constants;
 use ver1::{derive_ver1_address, signature_verification};
@@ -58,16 +58,6 @@ pub fn insert_kyc_data(new_mainnet_address: PublicKey, kyc_level: U512) {
         swapped_amount: U512::from(0),
     };
     swap_storage::save_kyc_data(new_mainnet_address, new_data);
-
-    let transfer_res: TransferResult = system::transfer_from_purse_to_account(
-        account::get_main_purse(),
-        new_mainnet_address,
-        U512::from(constants::consts::BIGSUN_TO_HDAC / 10), // 0.1 Hdac
-    );
-
-    if let Err(err) = transfer_res {
-        runtime::revert(err);
-    }
 }
 
 pub fn update_kyc_level(new_mainnet_address: PublicKey, kyc_level: U512) {

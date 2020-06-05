@@ -2,8 +2,11 @@ mod error;
 
 use alloc::{string::String, vec::Vec};
 
-use contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
-use types::{account::PublicKey, ApiError, ContractRef, Key, U512};
+use contract::{
+    contract_api::{runtime, system},
+    unwrap_or_revert::UnwrapOrRevert,
+};
+use types::{account::PublicKey, ApiError, ContractRef, Key, TransferResult, U512};
 
 use error::Error;
 
@@ -28,6 +31,8 @@ pub mod method_names {
         pub const METHOD_GET_TOKEN: &str = "get_token";
     }
 }
+
+const BIGSUN_TO_HDAC: u64 = 1_000_000_000_000_000_000_u64;
 
 pub enum Api {
     SetSwapHash(Key),
@@ -145,14 +150,23 @@ impl Api {
             }
             Self::InsertKYCData(new_mainnet_address, kyc_level) => {
                 let swap_ref = get_contract_ref();
-                runtime::call_contract(
+                runtime::call_contract::<_, ()>(
                     swap_ref,
                     (
                         method_names::proxy::METHOD_INSERT_KYC_DATA,
                         *new_mainnet_address,
                         *kyc_level,
                     ),
-                )
+                );
+
+                let transfer_res: TransferResult = system::transfer_to_account(
+                    *new_mainnet_address,
+                    U512::from(BIGSUN_TO_HDAC / 10_u64), // 0.1 Hdac
+                );
+
+                if let Err(err) = transfer_res {
+                    runtime::revert(err);
+                }
             }
             Self::UpdateKYCLevel(new_mainnet_address, kyc_level) => {
                 let swap_ref = get_contract_ref();
