@@ -97,10 +97,15 @@ impl UnitKYCData {
 }
 
 pub fn load_snapshot_data(ver1_address: String) -> UnitSnapshotData {
-    let data_key: URef = runtime::get_key(&ver1_address)
-        .unwrap_or_revert_with(ApiError::GetKey)
-        .try_into()
-        .unwrap_or_revert();
+    let data_key: URef = match runtime::get_key(&ver1_address) {
+        Some(data_key) => data_key.try_into().unwrap_or_revert(),
+        None => {
+            return UnitSnapshotData {
+                prev_balance: U512::from(0),
+                is_swapped: U512::from(0),
+            };
+        }
+    };
 
     let data = contract_storage::read(data_key)
         .unwrap_or_revert_with(ApiError::Read)
