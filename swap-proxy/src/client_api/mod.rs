@@ -3,10 +3,10 @@ mod error;
 use alloc::{string::String, vec::Vec};
 
 use contract::{
-    contract_api::{runtime, system},
+    contract_api::{account, runtime, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
-use types::{account::PublicKey, ApiError, ContractRef, Key, TransferResult, U512};
+use types::{account::PublicKey, ApiError, ContractRef, Key, TransferResult, URef, U512};
 
 use error::Error;
 
@@ -29,6 +29,8 @@ pub mod method_names {
         pub const METHOD_INSERT_KYC_DATA: &str = "insert_kyc_data";
         pub const METHOD_UPDATE_KYC_LEVEL: &str = "update_kyc_level";
         pub const METHOD_GET_TOKEN: &str = "get_token";
+
+        pub const METHOD_GET_CONTRACT_PURSE: &str = "get_contract_purse";
     }
 }
 
@@ -139,14 +141,30 @@ impl Api {
             }
             Self::InsertSnapshotRecord(ver1_address, amount) => {
                 let swap_ref = get_contract_ref();
-                runtime::call_contract(
-                    swap_ref,
+                runtime::call_contract::<_, ()>(
+                    swap_ref.clone(),
                     (
                         method_names::proxy::METHOD_INSERT_SNAPSHOT_RECORD,
                         ver1_address.clone(),
                         *amount,
                     ),
-                )
+                );
+
+                let contract_purse: URef = runtime::call_contract::<_, URef>(
+                    swap_ref,
+                    (method_names::swap::METHOD_GET_CONTRACT_PURSE,),
+                );
+
+                let transfer_res = system::transfer_from_purse_to_purse(
+                    account::get_main_purse(),
+                    contract_purse,
+                    *amount,
+                );
+
+                match transfer_res {
+                    Ok(_) => (),
+                    Err(err) => runtime::revert(err),
+                }
             }
             Self::InsertKYCData(new_mainnet_address, kyc_level) => {
                 let swap_ref = get_contract_ref();
@@ -182,15 +200,28 @@ impl Api {
             Self::GetToken(swap_contract_hash, ver1_pubkey_arr, message_arr, signature_arr) => {
                 let contract_ref = swap_contract_hash.to_contract_ref().unwrap_or_revert();
 
-                runtime::call_contract(
-                    contract_ref,
+                let swappable_amount: U512 = runtime::call_contract::<_, U512>(
+                    contract_ref.clone(),
                     (
                         method_names::proxy::METHOD_GET_TOKEN,
                         ver1_pubkey_arr.clone(),
                         message_arr.clone(),
                         signature_arr.clone(),
                     ),
-                )
+                );
+                let contract_purse: URef = runtime::call_contract::<_, URef>(
+                    contract_ref,
+                    (method_names::swap::METHOD_GET_CONTRACT_PURSE,),
+                );
+                let transfer_res: TransferResult = system::transfer_from_purse_to_account(
+                    contract_purse,
+                    runtime::get_caller(),
+                    swappable_amount,
+                );
+
+                if let Err(err) = transfer_res {
+                    runtime::revert(err);
+                }
             }
         }
     }

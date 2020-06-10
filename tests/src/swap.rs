@@ -91,7 +91,7 @@ fn should_run_insert_update_info_and_swap_step() {
         ),
         GenesisAccount::new(
             ACCOUNT_1_PUBKEY,
-            Motes::new(DEFAULT_ACCOUNT_INITIAL_BALANCE.into()),
+            Motes::new(U512::from(0).into()),
             Motes::new(GENESIS_VALIDATOR_STAKE.into()),
         ),
     ];
@@ -220,7 +220,7 @@ fn should_run_insert_update_info_and_swap_step() {
     assert_eq!(value.is_empty(), false);
 
     // Input existing information
-    println!("2-1 . Insert KYC data");
+    println!("2-1. Insert KYC data");
     let insert_kyc = ExecuteRequestBuilder::contract_call_by_hash(
         ADMIN_PUBKEY,
         swap_contract_hash,
@@ -308,6 +308,13 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
+    let before_balance = builder.get_purse_balance(
+        builder
+            .get_account(ACCOUNT_1_PUBKEY)
+            .expect("should have account")
+            .main_purse(),
+    );
+
     // Update KYC step
     let contract_ref = get_swap_stored_hash(&builder);
     println!("4-2. Get token with upper level KYC. Should success now");
@@ -348,6 +355,19 @@ fn should_run_insert_update_info_and_swap_step() {
     assert_eq!(
         value.get("swapped_amount").unwrap(),
         &VER1_AMOUNT_1.to_string(),
+    );
+
+    let after_balance = builder.get_purse_balance(
+        builder
+            .get_account(ACCOUNT_1_PUBKEY)
+            .expect("should have account")
+            .main_purse(),
+    );
+
+    assert_eq!(
+        // U512::from(BIGSUN_TO_HDAC / 100): Tx fee in test
+        U512::from(BIGSUN_TO_HDAC / 100) + after_balance - before_balance,
+        U512::from(VER1_AMOUNT_1),
     );
 
     let contract_ref = get_swap_stored_hash(&builder);

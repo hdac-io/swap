@@ -6,11 +6,11 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use contract::contract_api::runtime;
+use contract::contract_api::{runtime, system};
 use error::Error as SwapError;
 use num_traits::cast::AsPrimitive;
 use swap_storage::{UnitKYCData, UnitSnapshotData};
-use types::{account::PublicKey, Key, U512};
+use types::{account::PublicKey, Key, TransferResult, U512, URef};
 
 use crate::constants;
 use ver1::{derive_ver1_address, signature_verification};
@@ -42,6 +42,10 @@ pub fn insert_snapshot(ver1_address: String, prev_balance: U512) {
         is_swapped: U512::from(0),
     };
     swap_storage::save_snapshot_data(ver1_address, new_data);
+}
+
+pub fn get_contract_purse() -> URef {
+    swap_storage::load_contract_wallet()
 }
 
 pub fn insert_kyc_data(new_mainnet_address: PublicKey, kyc_level: U512) {
@@ -76,7 +80,7 @@ pub fn validate_sign_and_update_swapped_amount(
     ver1_pubkey_hex: Vec<String>,
     message: Vec<String>,
     signature_hex: Vec<String>,
-) {
+) -> U512 {
     if !(ver1_pubkey_hex.len() == message.len() && ver1_pubkey_hex.len() == signature_hex.len()) {
         runtime::revert(SwapError::InsufficientNumOfSwapParams);
     }
@@ -85,7 +89,7 @@ pub fn validate_sign_and_update_swapped_amount(
     let curr_account = runtime::get_caller();
     let kyc_border_allowance_cap = swap_storage::load_kyc_border_allowance_cap();
 
-    let mut curr_user_kyc_data = swap_storage::load_kyc_data(curr_account);
+    let mut curr_user_kyc_data = swap_storage::load_kyc_data(curr_account.clone());
 
     // Iterate addresses and summize for total value
     let mut prev_amount_for_whole_address = U512::from(0);
@@ -133,6 +137,8 @@ pub fn validate_sign_and_update_swapped_amount(
     // Update data
     curr_user_kyc_data.swapped_amount += swappable_amount;
     swap_storage::save_kyc_data(curr_account, curr_user_kyc_data);
+
+    swappable_amount
 }
 
 #[cfg(test)]

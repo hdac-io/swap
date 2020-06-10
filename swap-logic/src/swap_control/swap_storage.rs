@@ -187,3 +187,14 @@ pub fn save_kyc_border_allowance_cap(value: U512) {
     let new_data_uref = contract_storage::new_uref(value);
     runtime::put_key(keys::KEY_KYC_BORDER_ALLOWANCE_CAP, new_data_uref.into());
 }
+
+pub fn load_contract_wallet() -> URef {
+    let contract_purse_uref: URef = runtime::get_key(keys::KEY_CONTRACT_PURSE)
+        .unwrap_or_revert_with(ApiError::GetKey)
+        .try_into()
+        .unwrap_or_revert();
+
+    contract_storage::read(contract_purse_uref)
+        .unwrap_or_revert_with(ApiError::Read)
+        .unwrap_or_revert_with(ApiError::ValueNotFound)
+}

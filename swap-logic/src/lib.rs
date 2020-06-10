@@ -9,7 +9,7 @@ use alloc::{string::String, vec::Vec};
 
 use crate::constants::methods;
 use contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
-use types::{account::PublicKey, ApiError, Key, U512};
+use types::{account::PublicKey, ApiError, CLValue, Key, U512};
 
 #[no_mangle]
 pub extern "C" fn delegate() {
@@ -42,6 +42,11 @@ pub extern "C" fn delegate() {
 
             swap_control::insert_snapshot(ver1_address, prev_balance);
         }
+        methods::METHOD_GET_CONTRACT_PURSE => {
+            let contract_purse = swap_control::get_contract_purse();
+            let ret = CLValue::from_t(contract_purse).unwrap_or_revert();
+            runtime::ret(ret)
+        }
         methods::METHOD_INSERT_KYC_DATA => {
             let new_mainnet_address: PublicKey = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
@@ -73,11 +78,13 @@ pub extern "C" fn delegate() {
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-            swap_control::validate_sign_and_update_swapped_amount(
+            let swappable_amount = swap_control::validate_sign_and_update_swapped_amount(
                 ver1_pubkey_hex_arr,
                 message_arr,
                 signature_hex_arr,
             );
+            let ret = CLValue::from_t(swappable_amount).unwrap_or_revert();
+            runtime::ret(ret)
         }
 
         _ => {}

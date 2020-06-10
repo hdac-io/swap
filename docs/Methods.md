@@ -119,7 +119,7 @@ clif contract run hash fridaycontracthash1ktzdlh77y904num47wdry6qgftvzzfdket6fyv
 
 ### 3. Insert snapshot record
 
-For recording snapshot information. Admin stores address-amount pair into the contract and the information is used when an user requests toekn swap.
+For recording snapshot information. Admin stores address-amount pair into the contract and the information is used when an user requests toekn swap. And the token written in amount will be transfered into the purse of contract inside.
 
 ```json
 [
@@ -287,7 +287,7 @@ clif contract run hash fridaycontracthash1ktzdlh77y904num47wdry6qgftvzzfdket6fyv
 
 ### 1. Get token
 
-Before the swap process, you need to verify both of previous & new mainnet key. New mainnet system automatically verifies the new mainnet key, and the contract verifies the previous mainnet key. The contract contains ECDSA verification logic it can check the meesage, key, and signature. After signature verification, token swap logic will be triggered in the way of offchain.
+Before the swap process, you need to verify both of previous & new mainnet key. New mainnet system automatically verifies the new mainnet key, and the contract verifies the previous mainnet key. The contract contains ECDSA verification logic it can check the meesage, key, and signature. After signature verification, token will be given to the executor's account.
 
 ```json
 [
