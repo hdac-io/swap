@@ -91,7 +91,7 @@ fn should_run_insert_update_info_and_swap_step() {
         ),
         GenesisAccount::new(
             ACCOUNT_1_PUBKEY,
-            Motes::new(U512::from(0).into()),
+            Motes::new(U512::from(0)),
             Motes::new(GENESIS_VALIDATOR_STAKE.into()),
         ),
     ];

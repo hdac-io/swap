@@ -6,11 +6,11 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use contract::contract_api::{runtime, system};
+use contract::contract_api::runtime;
 use error::Error as SwapError;
 use num_traits::cast::AsPrimitive;
 use swap_storage::{UnitKYCData, UnitSnapshotData};
-use types::{account::PublicKey, Key, TransferResult, U512, URef};
+use types::{account::PublicKey, Key, URef, U512};
 
 use crate::constants;
 use ver1::{derive_ver1_address, signature_verification};
@@ -89,7 +89,7 @@ pub fn validate_sign_and_update_swapped_amount(
     let curr_account = runtime::get_caller();
     let kyc_border_allowance_cap = swap_storage::load_kyc_border_allowance_cap();
 
-    let mut curr_user_kyc_data = swap_storage::load_kyc_data(curr_account.clone());
+    let mut curr_user_kyc_data = swap_storage::load_kyc_data(curr_account);
 
     // Iterate addresses and summize for total value
     let mut prev_amount_for_whole_address = U512::from(0);
