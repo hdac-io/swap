@@ -120,7 +120,7 @@ fn should_run_insert_update_info_and_swap_step() {
     builder.commit();
 
     // Swap install pahse
-    println!("1. Swap install");
+    println!("1-1. Swap install");
     let swap_install_request =
         ExecuteRequestBuilder::standard(ADMIN_PUBKEY, CONTRACT_POS_VOTE, ()).build();
     let mut builder = InMemoryWasmTestBuilder::from_result(result);
@@ -131,23 +131,6 @@ fn should_run_insert_update_info_and_swap_step() {
         .finish();
 
     let swap_contract_hash = get_swap_hash(&builder);
-    let contract_ref = get_swap_stored_hash(&builder);
-
-    // Swap install pahse
-    println!("1-1. Input swap hash");
-    let set_swap_hash = ExecuteRequestBuilder::contract_call_by_hash(
-        ADMIN_PUBKEY,
-        swap_contract_hash,
-        ("set_swap_hash", contract_ref),
-    )
-    .build();
-
-    let mut builder = InMemoryWasmTestBuilder::from_result(result);
-    let result = builder
-        .exec(set_swap_hash)
-        .expect_success()
-        .commit()
-        .finish();
 
     // Swap install pahse
     println!("1-2. Input swap allowance cap by KYC level");

@@ -9,7 +9,7 @@ use alloc::{string::String, vec::Vec};
 
 use crate::constants::methods;
 use contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
-use types::{account::PublicKey, ApiError, CLValue, Key, U512};
+use types::{account::PublicKey, ApiError, CLValue, U512};
 
 #[no_mangle]
 pub extern "C" fn delegate() {
@@ -18,13 +18,6 @@ pub extern "C" fn delegate() {
         .unwrap_or_revert_with(ApiError::InvalidArgument);
 
     match method_name.as_str() {
-        methods::METHOD_SET_SWAP_HASH => {
-            let swap_hash_address: Key = runtime::get_arg(1)
-                .unwrap_or_revert_with(ApiError::MissingArgument)
-                .unwrap_or_revert_with(ApiError::InvalidArgument);
-
-            swap_control::set_swap_hash(swap_hash_address);
-        }
         methods::METHOD_INSERT_KYC_ALLOWANCE_CAP => {
             let kyc_allowance: U512 = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)

@@ -35,50 +35,7 @@ clif contract query address $(clif keys show elsa -a)
 
 Write down both of addresses. `swap_hash` is core contract logic, and `swap_proxy` is actual runner that keeps context in contract level.
 
-### 1. Set swap hash
-
-Contract of Execution engine has 2 types. One is logic contract, and another is proxy contract. The context is limited only user-level context if user executes a logic contract. So, the state cannot be share to other users. So, if you want to develop in general perception of 'contract', the context should be global and proxy contract does it.
-
-In this case, for avoiding inputting the address of the logic contract again, as this contract is executed only by admin, just set once and forget it.
-
-```json
-[
-   {
-      "name":"method",
-      "value":{
-         "cl_type":{
-            "simple_type":"STRING"
-         },
-         "value":{
-            "str_value":"set_swap_hash"
-         }
-      }
-   },
-   {
-      "name":"hash",
-      "value":{
-         "cl_type":{
-            "simple_type":"KEY"
-         },
-         "value":{
-            "key":{
-               "hash":{
-                  "hash":"<address>"
-               }
-            }
-         }
-      }
-   }
-]
-```
-
-Example:
-
-```bash
-clif contract run hash fridaycontracthash1ktzdlh77y904num47wdry6qgftvzzfdket6fyvgjtr8uhqv0pnhq0dq4np '[{"name":"method","value":{"cl_type":{"simple_type":"STRING"},"value":{"str_value":"set_swap_hash"}}},{"name":"hash","value":{"cl_type":{"simple_type":"KEY"},"value":{"key":{"hash":{"hash":"fridaycontracthash1n9jsnzahytdxvw2ac996r3kdctmggvaeppnmvs9xl92sa9734lsqjzqs6a"}}}}}]' 0.1 --from elsa
-```
-
-### 2. Insert an allowance cap of low level verification in KYC
+### 1. Insert an allowance cap of low level verification in KYC
 
 Hdac has two levels of KYC. If an user get the lower level and if the user has more tokens than the designate amount, the user is prohibited to get swapped tokens. For working well, admin should insert the value. This method works for this.
 
@@ -117,7 +74,7 @@ Example:
 clif contract run hash fridaycontracthash1ktzdlh77y904num47wdry6qgftvzzfdket6fyvgjtr8uhqv0pnhq0dq4np '[{"name":"method","value":{"cl_type":{"simple_type":"STRING"},"value":{"str_value":"insert_kyc_allowance_cap"}}},{"name":"cap","value":{"cl_type":{"simple_type":"U512"},"value":{"u512":{"value":"10000000"}}}}]' 0.1 --from elsa
 ```
 
-### 3. Insert snapshot record
+### 2. Insert snapshot record
 
 For recording snapshot information. Admin stores address-amount pair into the contract and the information is used when an user requests toekn swap. And the token written in amount will be transfered into the purse of contract inside.
 
@@ -167,7 +124,7 @@ Examples:
 clif contract run hash fridaycontracthash1ktzdlh77y904num47wdry6qgftvzzfdket6fyvgjtr8uhqv0pnhq0dq4np '[{"name":"method","value":{"cl_type":{"simple_type":"STRING"},"value":{"str_value":"insert_snapshot_record"}}},{"name":"address","value":{"cl_type":{"simple_type":"STRING"},"value":{"str_value":"HLkXSESzSaDZgU25CQrmxkjRayKfs5xBFK"}}},{"name":"amount","value":{"cl_type":{"simple_type":"U512"},"value":{"u512":{"value":"20000000"}}}}]' 0.1 --from elsa
 ```
 
-### 4. Insert KYC data
+### 3. Insert KYC data
 
 After the user passes the KYC step, KYC information will be inserted with this contract execution. And, small token for executing swap contract will be transfered to the account of the user.
 
@@ -225,7 +182,7 @@ Example:
 clif contract run hash fridaycontracthash1ktzdlh77y904num47wdry6qgftvzzfdket6fyvgjtr8uhqv0pnhq0dq4np '[{"name":"method","value":{"cl_type":{"simple_type":"STRING"},"value":{"str_value":"insert_kyc_data"}}},{"name":"address","value":{"cl_type":{"list_type":{"inner":{"simple_type":"U8"}}},"value":{"bytes_value":"friday1k568qc388n6x5ks8hkwly2q9ruepns8rr9sgqyjxk9cy6a2qq8gs4v2kpm"}}},{"name":"kyc_level","value":{"cl_type":{"simple_type":"U512"},"value":{"u512":{"value":"1"}}}}]' 0.1 --from elsa
 ```
 
-### 5. Update KYC data
+### 4. Update KYC data
 
 If the user has been passed the lower level and should be changed into higher level, execute the method. If the user asks for additional token, admin should transfer the token manually with an additional transaction.
 

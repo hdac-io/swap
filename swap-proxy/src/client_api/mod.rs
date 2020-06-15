@@ -15,7 +15,6 @@ pub mod method_names {
         use super::swap;
 
         pub const NAME_SWAP_HASH: &str = "swap_hash";
-        pub const METHOD_SET_SWAP_HASH: &str = swap::METHOD_SET_SWAP_HASH;
         pub const METHOD_INSERT_KYC_ALLOWANCE_CAP: &str = swap::METHOD_INSERT_KYC_ALLOWANCE_CAP;
         pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = swap::METHOD_INSERT_SNAPSHOT_RECORD;
         pub const METHOD_INSERT_KYC_DATA: &str = swap::METHOD_INSERT_KYC_DATA;
@@ -23,7 +22,6 @@ pub mod method_names {
         pub const METHOD_GET_TOKEN: &str = swap::METHOD_GET_TOKEN;
     }
     pub mod swap {
-        pub const METHOD_SET_SWAP_HASH: &str = "set_swap_hash";
         pub const METHOD_INSERT_KYC_ALLOWANCE_CAP: &str = "insert_kyc_allowance_cap";
         pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = "insert_snapshot_record";
         pub const METHOD_INSERT_KYC_DATA: &str = "insert_kyc_data";
@@ -37,7 +35,6 @@ pub mod method_names {
 const BIGSUN_TO_HDAC: u64 = 1_000_000_000_000_000_000_u64;
 
 pub enum Api {
-    SetSwapHash(Key),
     InsertKYCAllowanceCap(U512),
     InsertSnapshotRecord(String, U512),
     InsertKYCData(PublicKey, U512),
@@ -58,13 +55,6 @@ impl Api {
             .unwrap_or_revert_with(ApiError::InvalidArgument);
 
         match method_name.as_str() {
-            method_names::proxy::METHOD_SET_SWAP_HASH => {
-                let swap_hash: Key = runtime::get_arg(1)
-                    .unwrap_or_revert_with(ApiError::MissingArgument)
-                    .unwrap_or_revert_with(ApiError::InvalidArgument);
-
-                Api::SetSwapHash(swap_hash)
-            }
             method_names::proxy::METHOD_INSERT_KYC_ALLOWANCE_CAP => {
                 let cap_number: U512 = runtime::get_arg(1)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
@@ -122,13 +112,6 @@ impl Api {
 
     pub fn invoke(&self) {
         match self {
-            Self::SetSwapHash(swap_hash) => {
-                let contract_ref = swap_hash.to_contract_ref().unwrap_or_revert();
-                runtime::call_contract(
-                    contract_ref,
-                    (method_names::proxy::METHOD_SET_SWAP_HASH, *swap_hash),
-                )
-            }
             Self::InsertKYCAllowanceCap(allowance_cap) => {
                 let swap_ref = get_contract_ref();
                 runtime::call_contract(

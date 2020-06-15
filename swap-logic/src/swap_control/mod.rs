@@ -10,19 +10,11 @@ use contract::contract_api::runtime;
 use error::Error as SwapError;
 use num_traits::cast::AsPrimitive;
 use swap_storage::{UnitKYCData, UnitSnapshotData};
-use types::{account::PublicKey, Key, URef, U512};
+use types::{account::PublicKey, URef, U512};
 
-use crate::constants;
 use ver1::{derive_ver1_address, signature_verification};
 
 // Admin features
-
-pub fn set_swap_hash(swap_hash: Key) {
-    if runtime::get_caller() != swap_storage::load_admin() {
-        runtime::revert(SwapError::NotAdmin);
-    }
-    runtime::put_key(constants::users::KEY_SWAP_HASH, swap_hash);
-}
 
 pub fn insert_kyc_allowance_cap(allowance_cap: U512) {
     if runtime::get_caller() != swap_storage::load_admin() {

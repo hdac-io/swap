@@ -1,5 +1,4 @@
 pub(crate) mod methods {
-    pub const METHOD_SET_SWAP_HASH: &str = "set_swap_hash";
     pub const METHOD_INSERT_KYC_ALLOWANCE_CAP: &str = "insert_kyc_allowance_cap";
     pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = "insert_snapshot_record";
     pub const METHOD_GET_CONTRACT_PURSE: &str = "get_contract_purse";
@@ -22,5 +21,4 @@ pub(crate) mod keys {
 
 pub(crate) mod users {
     pub const KEY_ADMIN: &str = "admin";
-    pub const KEY_SWAP_HASH: &str = "swap_hash";
 }
