@@ -25,8 +25,6 @@ jobs:
         - make build/swap-install && make check-format && make lint
 env:
   global:
-    - PATH="$PATH:$HOME/protoc/bin"
     - RUST_BACKTRACE=1
 install:
-  - ./scripts/install_protoc.sh
   - make setup
