@@ -28,8 +28,7 @@ pub extern "C" fn call() {
 
     // Create purse for contract
     let contract_purse = system::create_purse();
-    let contract_purse_uref = storage::new_uref(contract_purse);
-    swapper_urefs.insert(String::from(KEY_CONTRACT_PURSE), contract_purse_uref.into());
+    swapper_urefs.insert(String::from(KEY_CONTRACT_PURSE), contract_purse.into());
 
     // Swap function storage
     let swap_function_pointer = storage::store_function_at_hash(NAME_SWAP_LOGIC_EXT, swapper_urefs);
