@@ -11,7 +11,7 @@ build/%:
 	cp target/wasm32-unknown-unknown/release/$(shell echo $* | sed "s/-/_/g").wasm tests/wasm
 
 .PHONY: test
-test:
+test: build/swap-install
 	$(CARGO) test $(CARGO_FLAGS) --manifest-path "tests/Cargo.toml" --features "use-system-contracts" -- --ignored --nocapture
 
 .PHONY: check-format
