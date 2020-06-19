@@ -16,17 +16,13 @@ base16 = "0.2.1"
 clap = "2"
 crossbeam-channel = "0.4.0"
 engine-core = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-engine-core" }
-engine-grpc-server = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-engine-grpc-server" }
 engine-test-support = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-engine-test-support" }
 env_logger = "0.7.1"
-grpc = "0.6.1"
 log = "0.4.8"
 
 [dev-dependencies]
 criterion = "0.3.0"
 engine-shared = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-engine-shared" }
-engine-storage = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-engine-storage" }
-engine-wasm-prep = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-engine-wasm-prep" }
 lazy_static = "1"
 num-traits = "0.2.10"
 serde_json = "1"
