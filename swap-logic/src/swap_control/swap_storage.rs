@@ -4,7 +4,7 @@ use alloc::{
     string::{String, ToString},
 };
 use contract::{
-    contract_api::{runtime, storage as contract_storage},
+    contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use core::{convert::TryInto, fmt::Write};
@@ -107,7 +107,7 @@ pub fn load_snapshot_data(ver1_address: String) -> UnitSnapshotData {
         }
     };
 
-    let data = contract_storage::read(data_key)
+    let data = storage::read(data_key)
         .unwrap_or_revert_with(ApiError::Read)
         .unwrap_or_revert_with(ApiError::ValueNotFound);
 
@@ -119,7 +119,7 @@ pub fn save_snapshot_data(ver1_address: String, unit_data: UnitSnapshotData) {
         runtime::remove_key(&ver1_address);
     }
 
-    let new_data_uref = contract_storage::new_uref(unit_data.organize());
+    let new_data_uref = storage::new_uref(unit_data.organize());
     runtime::put_key(&ver1_address, new_data_uref.into());
 }
 
@@ -130,7 +130,7 @@ pub fn load_kyc_data(new_address: PublicKey) -> UnitKYCData {
         .try_into()
         .unwrap_or_revert();
 
-    let data = contract_storage::read(data_key)
+    let data = storage::read(data_key)
         .unwrap_or_revert_with(ApiError::Read)
         .unwrap_or_revert_with(ApiError::ValueNotFound);
 
@@ -144,7 +144,7 @@ pub fn save_kyc_data(new_address: PublicKey, unit_data: UnitKYCData) {
         runtime::remove_key(&str_new_address);
     }
 
-    let new_data_uref = contract_storage::new_uref(unit_data.organize());
+    let new_data_uref = storage::new_uref(unit_data.organize());
     runtime::put_key(&str_new_address, new_data_uref.into());
 }
 
@@ -169,7 +169,7 @@ pub fn load_admin() -> PublicKey {
         .try_into()
         .unwrap_or_revert();
 
-    contract_storage::read(admin_pubkey_uref)
+    storage::read(admin_pubkey_uref)
         .unwrap_or_revert_with(ApiError::Read)
         .unwrap_or_revert_with(ApiError::ValueNotFound)
 }
@@ -180,7 +180,7 @@ pub fn load_kyc_border_allowance_cap() -> U512 {
         .try_into()
         .unwrap_or_revert();
 
-    contract_storage::read(kyc_border_allowance_uref)
+    storage::read(kyc_border_allowance_uref)
         .unwrap_or_revert_with(ApiError::Read)
         .unwrap_or_revert_with(ApiError::ValueNotFound)
 }
@@ -189,7 +189,7 @@ pub fn save_kyc_border_allowance_cap(value: U512) {
     if runtime::has_key(keys::KEY_KYC_BORDER_ALLOWANCE_CAP) {
         runtime::remove_key(keys::KEY_KYC_BORDER_ALLOWANCE_CAP);
     }
-    let new_data_uref = contract_storage::new_uref(value);
+    let new_data_uref = storage::new_uref(value);
     runtime::put_key(keys::KEY_KYC_BORDER_ALLOWANCE_CAP, new_data_uref.into());
 }
 

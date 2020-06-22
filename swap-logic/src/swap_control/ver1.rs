@@ -72,13 +72,12 @@ pub fn derive_ver1_address(ver1_pubkey_hex: String) -> String {
     buffered.reverse();
 
     // 'H' + hash160 + Hdac ver1 checksum = 1 + 20 + 4 = 25 bytes
-    let mut res: Vec<u8> = Vec::new();
-    for item in payload.iter() {
-        res.push(*item);
-    }
-    for item in buffered.iter() {
-        res.push(*item);
-    }
+    let res = {
+        let mut res = Vec::with_capacity(payload.len() + buffered.len());
+        res.extend(payload);
+        res.extend(buffered);
+        res
+    };
 
     bs58::encode(res).into_string()
 }
