@@ -1,0 +1,20 @@
+[package]
+name = "swap-install"
+version = "0.1.0"
+authors = ["Bryan <psy2848048@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+bench = false
+doctest = false
+test = false
+
+[features]
+std = ["contract/std", "types/std"]
+
+[dependencies]
+contract = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-contract", features = ["std"] }
+types = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-types", features = ["std"] }
+swap_logic = { path = "../swap-logic", package = "swap-logic", features = ["lib"] }
+swap_proxy = { path = "../swap-proxy", package = "swap-proxy", features = ["lib"] }

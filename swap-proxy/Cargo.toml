@@ -1,0 +1,18 @@
+[package]
+name = "swap-proxy"
+version = "0.1.0"
+authors = ["joonho <jhyeom26@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["lib"]
+bench = false
+doctest = false
+test = false
+
+[features]
+lib = []
+
+[dependencies]
+contract = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-contract", features = ["std"] }
+types = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-types", features = ["std"] }
