@@ -71,13 +71,11 @@ pub extern "C" fn delegate() {
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-            let swappable_amount = swap_control::validate_sign_and_update_swapped_amount(
+            swap_control::validate_sign_and_update_swapped_amount(
                 ver1_pubkey_hex_arr,
                 message_arr,
                 signature_hex_arr,
             );
-            let ret = CLValue::from_t(swappable_amount).unwrap_or_revert();
-            runtime::ret(ret)
         }
 
         _ => {}

@@ -183,28 +183,15 @@ impl Api {
             Self::GetToken(swap_contract_hash, ver1_pubkey_arr, message_arr, signature_arr) => {
                 let contract_ref = swap_contract_hash.to_contract_ref().unwrap_or_revert();
 
-                let swappable_amount: U512 = runtime::call_contract::<_, U512>(
-                    contract_ref.clone(),
+                runtime::call_contract(
+                    contract_ref,
                     (
                         method_names::proxy::METHOD_GET_TOKEN,
                         ver1_pubkey_arr.clone(),
                         message_arr.clone(),
                         signature_arr.clone(),
                     ),
-                );
-                let contract_purse: URef = runtime::call_contract::<_, URef>(
-                    contract_ref,
-                    (method_names::swap::METHOD_GET_CONTRACT_PURSE,),
-                );
-                let transfer_res: TransferResult = system::transfer_from_purse_to_account(
-                    contract_purse,
-                    runtime::get_caller(),
-                    swappable_amount,
-                );
-
-                if let Err(err) = transfer_res {
-                    runtime::revert(err);
-                }
+                )
             }
         }
     }
