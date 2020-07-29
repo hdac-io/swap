@@ -96,30 +96,14 @@ fn should_run_insert_update_info_and_swap_step() {
         ),
     ];
 
-    let state_infos = vec![
-        format_args!(
-            "d_{}_{}_{}",
-            base16::encode_lower(&ADMIN_PUBKEY.as_bytes()),
-            base16::encode_lower(&ADMIN_PUBKEY.as_bytes()),
-            GENESIS_VALIDATOR_STAKE.to_string()
-        )
-        .to_string(),
-        format_args!(
-            "d_{}_{}_{}",
-            base16::encode_lower(&ACCOUNT_1_PUBKEY.as_bytes()),
-            base16::encode_lower(&ACCOUNT_1_PUBKEY.as_bytes()),
-            GENESIS_VALIDATOR_STAKE.to_string()
-        )
-        .to_string(),
-    ];
-
+    let genesis_config = utils::create_genesis_config(accounts, Default::default());
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts, state_infos))
+        .run_genesis(&genesis_config)
+        .commit()
         .finish();
-    builder.commit();
 
-    // Swap install pahse
+    // Swap install phase
     println!("1-1. Swap install");
     let swap_install_request =
         ExecuteRequestBuilder::standard(ADMIN_PUBKEY, CONTRACT_POS_VOTE, ()).build();
@@ -348,8 +332,8 @@ fn should_run_insert_update_info_and_swap_step() {
     );
 
     assert_eq!(
-        // U512::from(BIGSUN_TO_HDAC / 100): Tx fee in test
-        U512::from(BIGSUN_TO_HDAC / 100) + after_balance - before_balance,
+        // U512::from(BIGSUN_TO_HDAC / 10): Tx fee in test
+        (U512::from(BIGSUN_TO_HDAC / 10) + after_balance - before_balance) % U512::from(100000),
         U512::from(VER1_AMOUNT_1),
     );
 

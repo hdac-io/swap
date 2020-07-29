@@ -12,7 +12,7 @@ build/%:
 
 .PHONY: test
 test: build/swap-install
-	$(CARGO) test $(CARGO_FLAGS) --manifest-path "tests/Cargo.toml" --features "use-system-contracts" -- --ignored --nocapture
+	$(CARGO) test $(CARGO_FLAGS) --manifest-path "tests/Cargo.toml" -- --ignored --nocapture
 
 .PHONY: check-format
 check-format:
