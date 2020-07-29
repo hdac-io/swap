@@ -21,13 +21,8 @@ env_logger = "0.7.1"
 log = "0.4.8"
 
 [dev-dependencies]
-criterion = "0.3.0"
+wabt = "0.10.0"
 engine-shared = { git="https://github.com/hdac-io/CasperLabs", branch="master", package = "casperlabs-engine-shared" }
-lazy_static = "1"
-num-traits = "0.2.10"
-serde_json = "1"
-tempfile = "3"
-wabt = "0.9.2"
 
 [lib]
 bench = false
