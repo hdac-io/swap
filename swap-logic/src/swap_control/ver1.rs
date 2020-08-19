@@ -1,8 +1,8 @@
 extern crate hex;
 
+use super::error::Error as SwapError;
 use alloc::{string::String, vec::Vec};
 use contract::contract_api::runtime;
-use super::error::Error as SwapError;
 use ripemd160::Ripemd160;
 use secp256k1::{self, Message, PublicKey as Ver1PubKey, Signature};
 use sha2::{Digest, Sha256};
