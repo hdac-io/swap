@@ -381,3 +381,232 @@ fn should_run_insert_update_info_and_swap_step() {
         &VER1_AMOUNT_1.to_string(),
     );
 }
+
+#[ignore]
+#[test]
+fn should_fail_swaprequest_if_kyc_is_not_inserted() {
+    // Genesis setting
+    let accounts = vec![
+        GenesisAccount::new(
+            ADMIN_PUBKEY,
+            Motes::new(DEFAULT_ACCOUNT_INITIAL_BALANCE.into()),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        GenesisAccount::new(
+            ACCOUNT_1_PUBKEY,
+            Motes::new(DEFAULT_ACCOUNT_INITIAL_BALANCE.into()),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+    ];
+
+    let genesis_config = utils::create_genesis_config(accounts, Default::default());
+    let mut builder = InMemoryWasmTestBuilder::default();
+    let result = builder.run_genesis(&genesis_config).commit().finish();
+
+    // Swap install phase
+    println!("1-1. Swap install");
+    let swap_install_request =
+        ExecuteRequestBuilder::standard(ADMIN_PUBKEY, CONTRACT_POS_VOTE, ()).build();
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder
+        .exec(swap_install_request)
+        .expect_success()
+        .commit()
+        .finish();
+
+    let swap_contract_hash = get_swap_hash(&builder);
+
+    // Swap install pahse
+    println!("1-2. Input swap allowance cap by KYC level");
+    let set_swap_cap = ExecuteRequestBuilder::contract_call_by_hash(
+        ADMIN_PUBKEY,
+        swap_contract_hash,
+        ("insert_kyc_allowance_cap", U512::from(SWAP_CAP_1)),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder
+        .exec(set_swap_cap)
+        .expect_success()
+        .commit()
+        .finish();
+
+    // Input existing information
+    println!("2. Ver1 Token info insert");
+    let ver1_token_info_insert_request = ExecuteRequestBuilder::contract_call_by_hash(
+        ADMIN_PUBKEY,
+        swap_contract_hash,
+        (
+            "insert_snapshot_record",
+            VER1_ADDRESS,
+            U512::from(VER1_AMOUNT_1),
+        ),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder
+        .exec(ver1_token_info_insert_request)
+        .expect_success()
+        .commit()
+        .finish();
+
+    let contract_ref = get_swap_stored_hash(&builder);
+    let value: BTreeMap<String, String> = CLValue::try_from(
+        builder
+            .query(
+                Some(builder.get_post_state_hash()),
+                contract_ref,
+                &[VER1_ADDRESS],
+            )
+            .expect("cannot derive stored value"),
+    )
+    .expect("should have CLValue")
+    .into_t()
+    .expect("should convert successfully");
+
+    assert_eq!(value.is_empty(), false);
+
+    let contract_ref = get_swap_stored_hash(&builder);
+    println!("3. Swap request without KYC info. Should fail");
+    let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
+        ACCOUNT_1_PUBKEY,
+        swap_contract_hash,
+        (
+            "get_token",
+            contract_ref,
+            vec![VER1_PUBKEY],
+            vec![VER1_MESSAGE_HASHED],
+            vec![VER1_SIGNATURE],
+        ),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder.exec(get_token_request).commit().finish();
+
+    let response = result
+        .builder()
+        .get_exec_response(0)
+        .expect("should have a response")
+        .to_owned();
+
+    let error_message = utils::get_error_message(response);
+    assert!(error_message.contains(&format!("Revert({})", u32::from(ApiError::GetKey),)));
+}
+
+#[ignore]
+#[test]
+fn should_fail_swaprequest_if_there_is_no_snapshot() {
+    // Genesis setting
+    let accounts = vec![
+        GenesisAccount::new(
+            ADMIN_PUBKEY,
+            Motes::new(DEFAULT_ACCOUNT_INITIAL_BALANCE.into()),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        GenesisAccount::new(
+            ACCOUNT_1_PUBKEY,
+            Motes::new(U512::from(0)),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+    ];
+
+    let genesis_config = utils::create_genesis_config(accounts, Default::default());
+    let mut builder = InMemoryWasmTestBuilder::default();
+    let result = builder.run_genesis(&genesis_config).commit().finish();
+
+    // Swap install phase
+    println!("1-1. Swap install");
+    let swap_install_request =
+        ExecuteRequestBuilder::standard(ADMIN_PUBKEY, CONTRACT_POS_VOTE, ()).build();
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder
+        .exec(swap_install_request)
+        .expect_success()
+        .commit()
+        .finish();
+
+    let swap_contract_hash = get_swap_hash(&builder);
+
+    // Swap install pahse
+    println!("1-2. Input swap allowance cap by KYC level");
+    let set_swap_cap = ExecuteRequestBuilder::contract_call_by_hash(
+        ADMIN_PUBKEY,
+        swap_contract_hash,
+        ("insert_kyc_allowance_cap", U512::from(SWAP_CAP_1)),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder
+        .exec(set_swap_cap)
+        .expect_success()
+        .commit()
+        .finish();
+
+    // Input existing information
+    println!("2. Insert KYC data");
+    let insert_kyc = ExecuteRequestBuilder::contract_call_by_hash(
+        ADMIN_PUBKEY,
+        swap_contract_hash,
+        ("insert_kyc_data", ACCOUNT_1_PUBKEY, U512::from(1)),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder.exec(insert_kyc).expect_success().commit().finish();
+
+    let contract_ref = get_swap_stored_hash(&builder);
+    let value: BTreeMap<String, String> = CLValue::try_from(
+        builder
+            .query(
+                Some(builder.get_post_state_hash()),
+                contract_ref,
+                &[&to_hex_string(ACCOUNT_1_PUBKEY)],
+            )
+            .expect("cannot derive stored value"),
+    )
+    .expect("should have CLValue")
+    .into_t()
+    .expect("should convert successfully");
+
+    assert_eq!(value.is_empty(), false);
+    assert_eq!(value.get("kyc_level").unwrap(), "1");
+
+    let contract_ref = get_swap_stored_hash(&builder);
+    println!("3. Swap request without snapshot. Finishes as success but nothing swapped.");
+    let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
+        ACCOUNT_1_PUBKEY,
+        swap_contract_hash,
+        (
+            "get_token",
+            contract_ref,
+            vec![VER1_PUBKEY],
+            vec![VER1_MESSAGE_HASHED],
+            vec![VER1_SIGNATURE],
+        ),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let _result = builder
+        .exec(get_token_request)
+        .expect_success()
+        .commit()
+        .finish();
+
+    let after_balance = builder.get_purse_balance(
+        builder
+            .get_account(ACCOUNT_1_PUBKEY)
+            .expect("should have account")
+            .main_purse(),
+    );
+
+    assert_eq!(
+        // No token is swapped then it goes to zero
+        after_balance % U512::from(100_000),
+        U512::from(0),
+    );
+}
