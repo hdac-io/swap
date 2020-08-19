@@ -28,6 +28,21 @@ pub enum Error {
 
     /// Theis wallet is already proceeded swap.
     AlreadySwapProceeded,
+
+    /// Ver1: Public key decode failure
+    PublicKeyDecodeFail,
+
+    /// Ver1: Invalid hex string of public key
+    InvalidHexOfPublicKey,
+
+    /// Ver1: Message decode failed
+    MessageDecodeFail,
+
+    /// Ver1: Signature hex decode failed
+    SignatureHexDecodeFail,
+
+    /// Ver1: Invalid signature
+    InvalidVer1Signature,
 }
 
 impl From<Error> for ApiError {
